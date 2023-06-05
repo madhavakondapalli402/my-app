@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+    tools {
+        maven "MAVEN_HOME"
+        jdk "JAVA_HOME"
+    }
+    stages {
+        stage('SCM Checkout') {
+            steps {
+                git 'https://github.com/madhavakondapalli402/my-app.git' 
+            }
+        }
+        stage('Build') {
+            steps{
+                sh 'mvn package'
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarserver') {
+                    sh "/opt/apache-maven-3.9.2/bin/mvn sonar:sonar"
+                }
+            }
+        }
+        stage('Slack Notification') {
+            steps {
+                slackSend baseUrl: 'https://hooks.slack.com/services/', 
+                channel: '#jenkins-pipeline', 
+                color: 'good', 
+                message: 'This is testing slack notifications from Jenkins Pipeline', 
+                teamDomain: 'Developing', 
+                tokenCredentialId: '56a050df-dfff-40c7-bbf7-27775b9facd4'
+                }
+           }
+    }
+}
